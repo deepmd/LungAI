@@ -1,0 +1,13 @@
+torch
+torchvision
+monai
+numpy
+easydict
+tensorboard
+pydicom==2.2.2
+nibabel
+SimpleITK
+tqdm
+fill_voids
+scikit-image
+scipy
