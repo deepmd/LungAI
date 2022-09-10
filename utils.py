@@ -82,11 +82,13 @@ def get_config(config_file):
 
 def get_data_files(image_dir, label_dir, ids):
     image_dirs = sorted(x[0] for x in os.walk(image_dir) if not x[1] and x[0].endswith(tuple(ids)))
+    image_files = image_dirs if os.listdir(image_dirs[0])[0].endswith(".dcm") else \
+                  [os.path.join(x, os.listdir(x)[0]) for x in image_dirs]
     label_dirs = sorted(x[0] for x in os.walk(label_dir) if not x[1] and x[0].endswith(tuple(ids)))
     label_files = [os.path.join(x, os.listdir(x)[0]) for x in label_dirs]
     files = [
         {"image": image_name, "label": label_name}
-        for image_name, label_name in zip(image_dirs, label_files)
+        for image_name, label_name in zip(image_files, label_files)
     ]
     return files
 
@@ -108,9 +110,7 @@ def is_debugging():
 
 def add_new_key(orig_data, key, new_data):
     orig_data[key] = new_data
-    ext = ".nii.gz"
     current_file_name = orig_data[key].meta["filename_or_obj"]
-    if current_file_name.endswith(ext):
-        orig_data[key].meta["filename_or_obj"] = current_file_name.replace(ext, f"_{key}{ext}")
-    else:
-        orig_data[key].meta["filename_or_obj"] = current_file_name + f"_{key}"
+    base_name = current_file_name.rsplit('.')[0]
+    exts = current_file_name.rsplit('.')[1:]
+    orig_data[key].meta["filename_or_obj"] = '.'.join([base_name + f"_{key}"] + exts)

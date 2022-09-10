@@ -3,8 +3,8 @@ from easydict import EasyDict
 config = EasyDict()
 config.seed = 13
 config.run_dir = None
-config.image_dir = "data/images"
-config.label_dir = "data/labels/emph"
+config.image_dir = "dataset/images"
+config.label_dir = "dataset/labels/emph"
 config.train_ids = [
     "0202_001_V1_TLC",
     "0202_001_V4_TLC",

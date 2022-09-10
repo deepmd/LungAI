@@ -7,7 +7,6 @@ from monai.transforms import (
     EnsureChannelFirstd,
     Compose,
     CropForegroundd,
-    LoadImaged,
     Orientationd,
     RandCropByPosNegLabeld,
     SaveImaged,
@@ -23,6 +22,7 @@ from monai.data import CacheDataset, DataLoader, Dataset, decollate_batch
 from torch.utils.tensorboard import SummaryWriter
 
 from utils import *
+from data import LoadImageAndPickled
 
 
 class Trainer:
@@ -46,9 +46,10 @@ class Trainer:
 
     @staticmethod
     def build_transforms(cfg):
+
         train_transforms = Compose(
             [
-                LoadImaged(keys=["image", "label"]),
+                LoadImageAndPickled(keys=["image", "label"]),
                 EnsureChannelFirstd(keys=["image", "label"]),
                 # todo: crop lungs if required
                 ScaleIntensityRanged(
@@ -79,7 +80,7 @@ class Trainer:
         )
         val_transforms = Compose(
             [
-                LoadImaged(keys=["image", "label"]),
+                LoadImageAndPickled(keys=["image", "label"]),
                 EnsureChannelFirstd(keys=["image", "label"]),
                 # todo: crop lungs if required
                 ScaleIntensityRanged(
@@ -98,7 +99,8 @@ class Trainer:
     def check_transform(dataset, output_dir, num_samples=3):
         logging.debug(f"Saving some samples to '{output_dir}'")
         os.makedirs(output_dir, exist_ok=True)
-        save_transform = SaveImaged(keys=["image", "label"], output_dir=output_dir, output_postfix="", resample=False)
+        save_transform = SaveImaged(keys=["image", "label"], output_dir=output_dir, output_postfix="",
+                                    separate_folder=False, resample=False)
         for idx in range(min(len(dataset), num_samples)):
             check_data = dataset.__getitem__(idx)
             if isinstance(check_data, list):
@@ -148,7 +150,7 @@ class Trainer:
     def _validate(self, step):
         self.model.eval()
         if self.debug:
-            save_transform = SaveImaged(keys=["label", "pred"], resample=False, output_postfix="",
+            save_transform = SaveImaged(keys=["label", "pred"], resample=False, output_postfix="", separate_folder=False,
                                         output_dir=os.path.join(self.cfg.run_dir, f"results/{step:05d}"))
         start = time.time()
         # ---------------- validation loop -----------------

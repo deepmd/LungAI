@@ -22,6 +22,7 @@ from monai.inferers import sliding_window_inference
 from monai.data import DataLoader, Dataset, decollate_batch
 
 from utils import *
+from data import LoadImageAndPickled
 
 
 @torch.no_grad()
@@ -43,7 +44,7 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
     if inference_only:
         test_transforms = Compose(
             [
-                LoadImaged(keys="image"),
+                LoadImageAndPickled(keys=["image"]),
                 EnsureChannelFirstd(keys="image"),
                 # todo: crop lungs if required
                 ScaleIntensityRanged(
@@ -59,7 +60,7 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
     else:
         test_transforms = Compose(
             [
-                LoadImaged(keys=["image", "label"]),
+                LoadImageAndPickled(keys=["image", "label"]),
                 EnsureChannelFirstd(keys=["image", "label"]),
                 # todo: crop lungs if required
                 ScaleIntensityRanged(
