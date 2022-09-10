@@ -7,13 +7,13 @@ config.image_dir = "data/images"
 config.label_dir = "data/labels/emph"
 config.train_ids = [
     "0202_001_V1_TLC",
+    "0202_001_V4_TLC",
     "0496_202-032_V1_TLC",
-    "0496_202-032_V2_TLC",
     "0499_502-2004_V2_TLC",
     "0499_502-2004_V3_TLC",
 ]
 config.val_ids = [
-    "0202_001_V4_TLC",
+    "0496_202-032_V2_TLC",
     "0499_502-2004_V4_TLC",
 ]
 config.test_ids = [
@@ -21,16 +21,15 @@ config.test_ids = [
     "0499_505-2004_V2_TLC"
 ]
 config.num_workers = 6
-config.batch_size = 64
+config.batch_size = 48
 config.gpu_id = 0
 config.lr = 1e-4
-config.iterations = 3000
-config.log_freq = 3
-config.val_freq = 30
-
+config.iterations = 5000
+config.log_freq = 5
+config.val_freq = 50
 config.intensity_range = (-1000, 400)
 config.spacing = (1.0, 1.0, 1.0)
 config.patch_size = (96, 96, 96)
-config.patch_per_sample = 4
+config.patch_per_sample = 16
 config.sliding_window_size = (160, 160, 160)
 config.sliding_window_batch_size = 4

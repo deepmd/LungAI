@@ -37,7 +37,8 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
         torch.cuda.set_device(gpu_id)
         torch.backends.cudnn.benchmark = True
 
-    inference_only = "label" not in data_files[0]
+    inference_only = all("label" in d for d in data_files)
+    print(f"Starting {('evaluation', 'inference')[inference_only]} using '{checkpoint_path}'")
 
     if inference_only:
         test_transforms = Compose(
@@ -76,7 +77,7 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
         post_label = Compose([AsDiscrete(to_onehot=2)])
 
     test_ds = Dataset(data=data_files, transform=test_transforms)
-    test_loader = DataLoader(test_ds, batch_size=1, num_workers=4)  # num_workers=(4, 0)[isdebugging()]
+    test_loader = DataLoader(test_ds, batch_size=1, num_workers=(4, 0)[is_debugging()])
 
     post_transforms = Compose([
         Invertd(
@@ -90,7 +91,7 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
             to_tensor=True,
         ),
         AsDiscreted(keys="pred", argmax=True),
-        SaveImaged(keys="pred", meta_keys="pred_meta_dict", output_dir=output_dir, resample=False),
+        SaveImaged(keys="pred", meta_keys="pred_meta_dict", output_dir=output_dir, output_postfix="", resample=False),
     ])
 
     model = UNet(
@@ -105,8 +106,7 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
     model.load_state_dict(checkpoint["state_dict"])
     model.eval()
     start = time.time()
-    # =========== prediction/evaluation loop ==============
-    print(f"Starting inference using '{checkpoint_path}'")
+    # ----------- prediction/evaluation loop --------------
     for test_data in test_loader:
         if inference_only:
             test_inputs = test_data["image"].to(device)
@@ -115,13 +115,13 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
                 test_data["image"].to(device),
                 test_data["label"].to(device),
             )
-        # =============== predicting masks ================
+        # --------------- predicting masks ----------------
         roi_size = cfg.sliding_window_size
         sw_batch_size = cfg.sliding_window_batch_size
         test_outputs = sliding_window_inference(test_inputs, roi_size, sw_batch_size, model)
         test_data["pred"] = test_outputs
         test_data = [post_transforms(i) for i in decollate_batch(test_data)]
-        # ============ computing dice score  ==============
+        # ------------ computing dice score  --------------
         if not inference_only:
             test_outputs = [post_pred(i) for i in decollate_batch(test_outputs)]
             test_labels = [post_label(i) for i in decollate_batch(test_labels)]
@@ -129,9 +129,9 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
 
     if not inference_only:
         metric = dice_metric.aggregate().item()
-        print(f"Evaluation result:\t" +
-              f"Total-Time {time.time() - start:.3f} " +
-              f"Mean-Dice {metric:.4f} ")
+        print(f"Evaluation result:  \t" +
+              f"Total-Time {time.time() - start:.3f}   " +
+              f"Mean-Dice {metric:.4f}")
         return metric
 
 

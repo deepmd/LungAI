@@ -29,7 +29,7 @@ class AverageMeter(object):
 
 def init_log(log_path, debug=False):
     log_root = logging.getLogger()
-    log_root.setLevel(logging.DEBUG if debug else logging.INFO)
+    log_root.setLevel((logging.INFO, logging.DEBUG)[debug or is_debugging()])
     handler_file = logging.FileHandler(log_path, mode="a")
     handler_stream = logging.StreamHandler(sys.stdout)
     log_root.addHandler(handler_file)
@@ -99,8 +99,18 @@ def cycle(iterable, stop=sys.maxsize):
             yield x
 
 
-def isdebugging():
+def is_debugging():
     for frame in inspect.stack():
         if frame[1].endswith("pydevd.py"):
             return True
     return False
+
+
+def add_new_key(orig_data, key, new_data):
+    orig_data[key] = new_data
+    ext = ".nii.gz"
+    current_file_name = orig_data[key].meta["filename_or_obj"]
+    if current_file_name.endswith(ext):
+        orig_data[key].meta["filename_or_obj"] = current_file_name.replace(ext, f"_{key}{ext}")
+    else:
+        orig_data[key].meta["filename_or_obj"] = current_file_name + f"_{key}"
