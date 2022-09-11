@@ -15,11 +15,10 @@ from monai.transforms import (
     Invertd,
     LabelToMaskd,
 )
-from monai.networks.nets import UNet
-from monai.networks.layers import Norm
 from monai.inferers import sliding_window_inference
 from monai.data import DataLoader, Dataset, decollate_batch
 
+from models import build_model
 from utils import *
 from data import LoadImageAndPickled
 
@@ -84,16 +83,7 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
         ]
     )
 
-    model = UNet(
-        spatial_dims=3,
-        in_channels=1,
-        out_channels=2,
-        channels=(16, 32, 64, 128, 256),
-        strides=(2, 2, 2, 2),
-        num_res_units=2,
-        norm=Norm.BATCH,
-    ).to(device)
-    model.load_state_dict(checkpoint["state_dict"])
+    model = build_model(cfg.get("model", "UNet"), state_dict=checkpoint["state_dict"]).to(device)
     model.eval()
     start = time.time()
     # ----------- prediction/evaluation loop --------------

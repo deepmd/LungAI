@@ -13,14 +13,13 @@ from monai.transforms import (
     ScaleIntensityRanged,
     Spacingd,
 )
-from monai.networks.nets import UNet
-from monai.networks.layers import Norm
 from monai.metrics import DiceMetric
-from monai.losses import DiceLoss
 from monai.inferers import sliding_window_inference
 from monai.data import CacheDataset, DataLoader, Dataset, decollate_batch
 from torch.utils.tensorboard import SummaryWriter
 
+from losses import build_loss
+from models import build_model
 from utils import *
 from data import LoadImageAndPickled
 
@@ -209,16 +208,8 @@ class Trainer:
             self.check_transform(val_ds, os.path.join(self.cfg.run_dir, "samples", "val"))
 
         # ----- building model, criterion and optimizer -----
-        self.model = UNet(
-            spatial_dims=3,
-            in_channels=1,
-            out_channels=2,
-            channels=(16, 32, 64, 128, 256),
-            strides=(2, 2, 2, 2),
-            num_res_units=2,
-            norm=Norm.BATCH,
-        ).to(self.device)
-        self.criterion = DiceLoss(to_onehot_y=True, softmax=True).to(self.device)
+        self.model = build_model(cfg.model).to(self.device)
+        self.criterion = build_loss(cfg.loss).to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.cfg.lr)
 
         self.dice_metric = DiceMetric(include_background=False, reduction="mean")

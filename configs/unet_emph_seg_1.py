@@ -20,6 +20,8 @@ config.test_ids = [
     "0496_202-032_V2_FRC",
     "0499_505-2004_V2_TLC"
 ]
+config.model = "UNet"
+config.loss = "Dice"
 config.num_workers = 6
 config.batch_size = 48
 config.gpu_id = 0
