@@ -33,5 +33,6 @@ config.intensity_range = (-1000, 400)  # (-1200, 600)
 config.spacing = (1.0, 1.0, 1.0)
 config.patch_size = (96, 96, 96)
 config.patch_per_sample = 16
+config.pos_neg_ratio = 1
 config.sliding_window_size = (160, 160, 160)
 config.sliding_window_batch_size = 4

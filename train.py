@@ -63,7 +63,7 @@ class Trainer:
                     keys=["image", "label"],
                     label_key="label",
                     spatial_size=cfg.patch_size,
-                    pos=1,
+                    pos=cfg.pos_neg_ratio,
                     neg=1,
                     num_samples=cfg.patch_per_sample,
                     image_key="image",
