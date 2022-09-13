@@ -1,4 +1,12 @@
-from monai.losses import DiceLoss, DiceCELoss, DiceFocalLoss, FocalLoss, TverskyLoss
+from monai.losses import (
+    DiceLoss,
+    DiceCELoss,
+    DiceFocalLoss,
+    FocalLoss,
+    TverskyLoss,
+    GeneralizedDiceLoss,
+    GeneralizedDiceFocalLoss
+)
 
 
 def build_loss(loss_name):
@@ -12,6 +20,10 @@ def build_loss(loss_name):
         loss = FocalLoss(to_onehot_y=True)
     elif loss_name.lower() == "tversky":
         loss = TverskyLoss(to_onehot_y=True, softmax=True)
+    elif loss_name.lower() == "generalizeddice":
+        loss = GeneralizedDiceLoss(to_onehot_y=True, softmax=True)
+    elif loss_name.lower() == "generalizeddicefocal":
+        loss = GeneralizedDiceFocalLoss(to_onehot_y=True, softmax=True)
     else:
         raise ValueError(f"Loss name '{loss_name}' is not valid!")
 
