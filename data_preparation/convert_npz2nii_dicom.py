@@ -63,7 +63,7 @@ def get_npz_paths(dir_path):
     paths = []
     for (root, _, filenames) in os.walk(dir_path, topdown=False):
         for file in filenames:
-            if 'npz' in file:
+            if '.npz' in file:
                 paths.append(os.path.join(root, file))
     return paths
 
