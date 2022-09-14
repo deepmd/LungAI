@@ -11,6 +11,7 @@ from tqdm import tqdm
 import fill_voids
 import skimage.morphology
 
+tqdm = lambda x: x  # suppress tqdm
 
 def preprocess(img, label=None, resolution=[192, 192]):
     imgmtx = np.copy(img)

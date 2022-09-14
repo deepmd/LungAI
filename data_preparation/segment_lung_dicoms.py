@@ -68,6 +68,7 @@ if __name__ == '__main__':
     root_dir = sys.argv[1]
 
     dicom_paths = get_dicom_paths(root_dir)
+    model = mask.get_model(modeltype='unet', modelname='R231', modelpath="weights/unet_r231-d5d2fc3d.pth")
 
     for counter, dicoms_dir in enumerate(dicom_paths):
         reader = sitk.ImageSeriesReader()
@@ -76,7 +77,7 @@ if __name__ == '__main__':
         input_image = reader.Execute()
         # size = input_image.GetSize()
 
-        segmentation = mask.apply(input_image)
+        segmentation = mask.apply(input_image, model)
         # model prediction represents right lobe as 1 and left lobe as 2
         # we represent both of them as 1
         segmentation[segmentation > 0] = 1

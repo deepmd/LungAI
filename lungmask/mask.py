@@ -1,3 +1,5 @@
+import os.path
+
 import numpy as np
 import torch
 from lungmask import utils
@@ -5,11 +7,12 @@ import SimpleITK as sitk
 from .resunet import UNet
 import warnings
 import sys
-from tqdm import tqdm
+# from tqdm import tqdm
 import skimage
 import logging
 
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+tqdm = lambda x: x  # suppress tqdm
+# logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 warnings.filterwarnings("ignore", category=UserWarning)
 
 # stores urls and number of classes of the models
@@ -92,7 +95,7 @@ def apply(image, model=None, force_cpu=False, batch_size=20, volume_postprocessi
 
 
 def get_model(modeltype, modelname, modelpath=None, n_classes=3):
-    if modelpath is None:
+    if modelpath is None or not os.path.exists(modelpath):
         model_url, n_classes = model_urls[(modeltype, modelname)]
         state_dict = torch.hub.load_state_dict_from_url(model_url, progress=True, map_location=torch.device('cpu'))
     else:

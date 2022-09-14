@@ -21,7 +21,7 @@ config.test_ids = [
     "0499_505-2004_V2_TLC"
 ]
 config.model = "UNet"
-config.loss = "GeneralizedDice"
+config.loss = "Dice"
 config.num_workers = 6
 config.batch_size = 48
 config.gpu_id = 0
@@ -29,8 +29,8 @@ config.lr = 1e-4
 config.iterations = 5000
 config.log_freq = 5
 config.val_freq = 50
-config.crop_lung = False
-config.intensity_range = (-1000, 400)
+config.crop_lung = True
+config.intensity_range = (-1000, 400)  # (-1200, 600)
 config.spacing = (1.0, 1.0, 1.0)
 config.patch_size = (96, 96, 96)
 config.patch_per_sample = 16

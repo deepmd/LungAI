@@ -12,16 +12,17 @@ from monai.transforms import (
     SaveImaged,
     ScaleIntensityRanged,
     Spacingd,
+    Identity,
 )
 from monai.metrics import DiceMetric
 from monai.inferers import sliding_window_inference
-from monai.data import CacheDataset, DataLoader, Dataset, decollate_batch
+from monai.data import CacheDataset, DataLoader, decollate_batch
 from torch.utils.tensorboard import SummaryWriter
 
 from losses import build_loss
 from models import build_model
+from data import LoadImageAndPickled, CropLungWithModeld
 from utils import *
-from data import LoadImageAndPickled
 
 
 class Trainer:
@@ -50,7 +51,7 @@ class Trainer:
             [
                 LoadImageAndPickled(keys=["image", "label"]),
                 EnsureChannelFirstd(keys=["image", "label"]),
-                # todo: crop lungs if required
+                (CropLungWithModeld(keys=["image"]) if cfg.crop_lung else Identity()),
                 ScaleIntensityRanged(
                     keys=["image"], a_min=cfg.intensity_range[0], a_max=cfg.intensity_range[1],
                     b_min=0.0, b_max=1.0, clip=True,
@@ -81,7 +82,7 @@ class Trainer:
             [
                 LoadImageAndPickled(keys=["image", "label"]),
                 EnsureChannelFirstd(keys=["image", "label"]),
-                # todo: crop lungs if required
+                (CropLungWithModeld(keys=["image"]) if cfg.crop_lung else Identity()),
                 ScaleIntensityRanged(
                     keys=["image"], a_min=cfg.intensity_range[0], a_max=cfg.intensity_range[1],
                     b_min=0.0, b_max=1.0, clip=True,
@@ -188,10 +189,11 @@ class Trainer:
         train_files = get_data_files(self.cfg.image_dir, self.cfg.label_dir, self.cfg.train_ids)
         val_files = get_data_files(self.cfg.image_dir, self.cfg.label_dir, self.cfg.val_ids)
 
+        cache_num_workers = 1 if cfg.crop_lung else self.cfg.num_workers
         train_ds = CacheDataset(data=train_files, transform=train_transforms,
-                                cache_rate=1.0, num_workers=self.cfg.num_workers)
+                                cache_rate=1.0, num_workers=cache_num_workers)
         val_ds = CacheDataset(data=val_files, transform=val_transforms,
-                              cache_rate=1.0, num_workers=self.cfg.num_workers)
+                              cache_rate=1.0, num_workers=cache_num_workers)
         loader_num_workers = self.cfg.num_workers
         if is_debugging():
             logging.debug("Data loader num_workers set to 0 for debugging.")
@@ -208,7 +210,11 @@ class Trainer:
             self.check_transform(val_ds, os.path.join(self.cfg.run_dir, "samples", "val"))
 
         # ----- building model, criterion and optimizer -----
-        self.model = build_model(cfg.model).to(self.device)
+        weights = None
+        if cfg.get("pretrained_weights", None) is not None:
+            logging.info(f"Loading pretrained weights '{cfg.pretrained_weights}'.")
+            weights = torch.load(cfg.pretrained_weights)
+        self.model = build_model(cfg.model, weights).to(self.device)
         self.criterion = build_loss(cfg.loss).to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.cfg.lr)
 

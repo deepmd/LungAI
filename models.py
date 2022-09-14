@@ -4,7 +4,7 @@ from monai.networks.nets import UNETR
 from monai.networks.nets import SwinUNETR
 
 
-def build_model(model_name, state_dict=None):
+def build_model(model_name, weights=None):
     if model_name.lower() == "unet":
         model = UNet(
             spatial_dims=3,
@@ -40,7 +40,9 @@ def build_model(model_name, state_dict=None):
     else:
         raise ValueError(f"Model name '{model_name}' is not valid!")
 
-    if state_dict is not None:
-        model.load_state_dict(state_dict)
-
+    if weights is not None:
+        if model_name.lower() == "swinunetr" and "state_dict" in weights:
+            model.load_from(weights)
+        else:
+            model.load_state_dict(weights)
     return model

@@ -29,6 +29,7 @@ config.lr = 1e-4
 config.iterations = 5000
 config.log_freq = 5
 config.val_freq = 50
+config.crop_lung = False
 config.intensity_range = (-1000, 400)  # (-1200, 600)
 config.spacing = (1.0, 1.0, 1.0)
 config.patch_size = (96, 96, 96)

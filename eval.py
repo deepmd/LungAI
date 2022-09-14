@@ -14,13 +14,14 @@ from monai.transforms import (
     Spacingd,
     Invertd,
     LabelToMaskd,
+    Identity,
 )
 from monai.inferers import sliding_window_inference
-from monai.data import DataLoader, Dataset, decollate_batch
+from monai.data import DataLoader, CacheDataset, Dataset, decollate_batch
 
 from models import build_model
+from data import LoadImageAndPickled, CropLungWithModeld
 from utils import *
-from data import LoadImageAndPickled
 
 
 @torch.no_grad()
@@ -44,7 +45,7 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
         [
             LoadImageAndPickled(keys=keys),
             EnsureChannelFirstd(keys=keys),
-            # todo: crop lungs if required
+            (CropLungWithModeld(keys=["image"], fill_value=0) if cfg.get("crop_lung", False) else Identity()),
             ScaleIntensityRanged(
                 keys=["image"], a_min=cfg.intensity_range[0], a_max=cfg.intensity_range[1],
                 b_min=0.0, b_max=1.0, clip=True,
@@ -57,7 +58,8 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
     )
     dice_metric = DiceMetric(include_background=False, reduction="mean")
 
-    test_ds = Dataset(data=data_files, transform=test_transforms)
+    test_ds = Dataset(data=data_files, transform=test_transforms) if not cfg.get("crop_lung", False) else \
+              CacheDataset(data=data_files, transform=test_transforms, cache_rate=1.0, num_workers=1)
     test_loader = DataLoader(test_ds, batch_size=1, num_workers=(4, 0)[is_debugging()])
 
     post_transforms = Compose(
@@ -73,7 +75,8 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
                 to_tensor=True,
             ),
             AsDiscreted(keys="pred", argmax=True, to_onehot=2),
-        ] + ([AsDiscreted(keys="label", to_onehot=2)] if evaluation_mode else [])
+            (AsDiscreted(keys="label", to_onehot=2) if evaluation_mode else Identity())
+        ]
     )
     save_transform = Compose(
         [
@@ -83,7 +86,7 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
         ]
     )
 
-    model = build_model(cfg.get("model", "UNet"), state_dict=checkpoint["state_dict"]).to(device)
+    model = build_model(cfg.get("model", "UNet"), weights=checkpoint["state_dict"]).to(device)
     model.eval()
     start = time.time()
     # ----------- prediction/evaluation loop --------------
