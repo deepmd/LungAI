@@ -45,7 +45,7 @@ def eval(checkpoint_path, data_files, output_dir, gpu_id=None):
         [
             LoadImageAndPickled(keys=keys),
             EnsureChannelFirstd(keys=keys),
-            (CropLungWithModeld(keys=["image"], fill_value=0) if cfg.get("crop_lung", False) else Identity()),
+            (CropLungWithModeld(keys=["image"]) if cfg.get("crop_lung", False) else Identity()),
             ScaleIntensityRanged(
                 keys=["image"], a_min=cfg.intensity_range[0], a_max=cfg.intensity_range[1],
                 b_min=0.0, b_max=1.0, clip=True,
