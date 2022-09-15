@@ -4,7 +4,6 @@ import numpy as np
 import torch
 from monai.utils.type_conversion import convert_to_tensor, convert_data_type
 from monai.transforms.transform import MapTransform
-from monai.transforms import MaskIntensity
 from monai.config import KeysCollection
 
 from lungmask import mask
