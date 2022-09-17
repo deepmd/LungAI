@@ -16,6 +16,9 @@ from monai.transforms import (
     ScaleIntensityRanged,
     Spacingd,
     Identity,
+    RandFlipd,
+    RandRotate90d,
+    RandShiftIntensityd,
 )
 from monai.metrics import DiceMetric
 from monai.inferers import sliding_window_inference
@@ -53,6 +56,17 @@ def build_transforms(cfg):
                 image_key="image",
                 image_threshold=0,
             ),
+            (RandFlipd(keys=["image", "label"],
+                       spatial_axis=[0], prob=0.10) if cfg.flip else Identity()),
+            (RandFlipd(keys=["image", "label"],
+                       spatial_axis=[1], prob=0.10) if cfg.flip else Identity()),
+            (RandFlipd(keys=["image", "label"],
+                       spatial_axis=[2], prob=0.10) if cfg.flip else Identity()),
+            (RandRotate90d(keys=["image", "label"],
+                           prob=0.10, max_k=3) if cfg.rotate90 else Identity()),
+            (RandShiftIntensityd(keys=["image"],
+                                 offsets=0.10, prob=0.50) if cfg.shift_intensity else Identity)
+
             # RandAffined(
             #     keys=['image', 'label'],
             #     mode=('bilinear', 'nearest'),
