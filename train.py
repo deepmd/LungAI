@@ -23,6 +23,7 @@ from monai.data import CacheDataset, DataLoader, decollate_batch
 from torch.utils.tensorboard import SummaryWriter
 
 from losses import build_loss
+from optimizers import build_optimizer
 from models import build_model
 from data import LoadImageAndPickled, CropLungWithModeld, get_data_files, check_transform
 from utils import *
@@ -195,7 +196,7 @@ def main(cfg, debug=False):
         weights = torch.load(cfg.pretrained_weights)
     model = build_model(cfg.model, weights).to(device)
     criterion = build_loss(cfg.loss).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=cfg.lr)
+    optimizer = build_optimizer(cfg.optimizer, model.parameters(), lr=cfg.lr)
 
     # ---------------- training loop -----------------
     batch_time = AverageMeter()
