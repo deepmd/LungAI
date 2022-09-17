@@ -65,7 +65,7 @@ def build_transforms(cfg):
             (RandRotate90d(keys=["image", "label"],
                            prob=0.10, max_k=3) if cfg.rotate90 else Identity()),
             (RandShiftIntensityd(keys=["image"],
-                                 offsets=0.10, prob=0.50) if cfg.shift_intensity else Identity)
+                                 offsets=0.10, prob=0.50) if cfg.shift_intensity else Identity())
 
             # RandAffined(
             #     keys=['image', 'label'],
