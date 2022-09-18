@@ -22,6 +22,7 @@ config.test_ids = [
 ]
 config.model = "UNet"
 config.loss = "Dice"
+config.optimizer = "Adam"
 config.num_workers = 6
 config.batch_size = 48
 config.gpu_id = 0
@@ -35,5 +36,8 @@ config.spacing = (1.0, 1.0, 1.0)
 config.patch_size = (96, 96, 96)
 config.patch_per_sample = 16
 config.pos_neg_ratio = 1
+config.flip = False
+config.rotate90 = False
+config.shift_intensity = False
 config.sliding_window_size = (160, 160, 160)
 config.sliding_window_batch_size = 4
